@@ -5,8 +5,6 @@
 
 #include <stdio.h>
 
-#include "cpu/cpu.hpp"
-
 
 
 #ifdef __cplusplus
