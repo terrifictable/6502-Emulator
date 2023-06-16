@@ -1,5 +1,7 @@
-CXX := g++
-CXXFLAGS := -std=c++20 -g -Wall -Wextra -Werror
+CXX 	 	:= g++
+CXXFLAGS 	:= -std=c++20 -g -Wall -Wextra -Werror
+GTESTFLAGS  := 
+
 
 OUT := bin/main.exe
 

@@ -1,5 +1,9 @@
 # Compiled files
 bin/
+libs/
+
+# googletest
+googletest/
 
 # Prerequisites
 *.d

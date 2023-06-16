@@ -2,3 +2,8 @@
   - Setup C++ project
   - "Hello World!"
 
+* Part 2
+  - "setup" Asm to Bin folder/project
+  - add googletest
+  - common header
+
