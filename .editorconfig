@@ -1,0 +1,26 @@
+# top-most EditorConfig file
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+[*.{yml,yaml,json,json,json5,webmanifest}]
+indent_size = 2
+
+[*.sh]
+end_of_line = lf
+
+[*.{cmd,bat}]
+end_of_line = crlf
+
+
+
+[Makefile]
+indent_style = tab

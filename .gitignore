@@ -1,10 +1,3 @@
-# Compiled files
-bin/
-libs/
-
-# googletest
-googletest/
-
 # Prerequisites
 *.d
 
@@ -38,3 +31,6 @@ googletest/
 *.out
 *.app
 
+.vscode/
+*.o
+bin/
