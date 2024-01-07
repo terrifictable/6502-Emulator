@@ -54,3 +54,4 @@ test/%.o: %.cpp
 clean:
 	-@rm -r $(bin)/
 	-@rm $(OUT)
+	-@rm $(OUT_TEST)
