@@ -1,6 +1,13 @@
 #include <iostream>
-#include <stdio.h>
-#include <string.h>
+#include <cstring>
+#include <cstdio>
+
+#include "lib/helpers/singleton.h"
+#include "lib/helpers/enum.h"
+#include "lib/types.h"
+#include "lib/util.h"
+#include "common.h"
+
 
 #include "common.h"
 #include "cpu/cpu.hpp"
@@ -8,7 +15,7 @@
 int main(unused int argc, unused char *argv[]) {
     Memory mem;
     CPU cpu;
- 
+
     cpu.reset(mem);
 
     /* start - inline program */

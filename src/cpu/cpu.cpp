@@ -10,7 +10,7 @@
 void CPU::reset(Memory &memory) {
     this->pc = 0xfffc;
     this->sp = 0x0100;
-    
+
     this->status.c = 0;
     this->status.z = 0;
     this->status.i = 0;
@@ -18,11 +18,11 @@ void CPU::reset(Memory &memory) {
     this->status.b = 0;
     this->status.v = 0;
     this->status.n = 0;
-    
+
     this->ra = 0;
     this->rx = 0;
     this->ry = 0;
-    
+
     memory.init();
 }
 
@@ -51,10 +51,10 @@ byte CPU::read_byte(s32 &cycles, byte addr, Memory &mem) {
 word CPU::fetch_word(s32 &cycles, Memory &mem) {
     word data = mem[this->pc];
     this->pc++;
-    
+
     data |= (mem[this->pc] << 8);
     this->pc++;
-    
+
     cycles_guard(cycles, 2);
     return data;
 }
@@ -64,68 +64,61 @@ word CPU::fetch_word(s32 &cycles, Memory &mem) {
 void CPU::load_register(byte &reg, byte value) {
     reg = value;
     this->status.z = (reg == 0);
-    this->status.n = (reg & 0b10000000) > 0;
+    this->status.n = (reg & 0b100000000) > 0; // ...byte is unsigned, so negative should not be possible
 }
 
 
 
 void CPU::exec(s32 cycles, Memory &mem) {
     do {
-        byte inst = fetch_byte(cycles, mem); 
-         
+        byte inst = fetch_byte(cycles, mem);
+
         // printf("Cycles: %d\n", cycles < 0);
         // printf("PC: %x\n", this->pc);
         // printf("SP: %x\n", this->sp);
         // printf("MEM: %x %x %x %x %x\n", mem[this->pc-2], mem[this->pc-1], mem[this->pc], mem[this->pc+1], mem[this->pc+2]);
         // printf("INST: %x\n", inst);
-        
+
         switch (inst) {
-            case INST_NOP: 
-                {
+            case INST_NOP: {
                     cycles_guard(cycles, 1);
                 } break;
 
             /* LDA */
-            case INST_LDA_IM: 
-                {
+            case INST_LDA_IM: {
                     byte val = fetch_byte(cycles, mem);
                     load_register(this->ra, val);
                 } break;
 
-            case INST_LDA_ZP: 
-                {
+            case INST_LDA_ZP: {
                     byte zp_addr = fetch_byte(cycles, mem);
                     byte val = read_byte(cycles, zp_addr, mem);
                     load_register(this->ra, val);
                 } break;
 
-            case INST_LDA_ZPX: 
-                {
+            case INST_LDA_ZPX: {
                     byte zp_addr = fetch_byte(cycles, mem);
                     zp_addr += this->rx;
                     cycles_guard(cycles, 1);
-                    
+
                     byte val = read_byte(cycles, zp_addr, mem);
                     load_register(this->ra, val);
                 } break;
             /* LDA */
 
             /* LDX */
-            case INST_LDX_IM:
-                {
+            case INST_LDX_IM: {
                     byte val = fetch_byte(cycles, mem);
                     load_register(this->rx, val);
                 } break;
 
-            case INST_LDX_ZP:
-                {
+            case INST_LDX_ZP: {
                     byte zp_addr = fetch_byte(cycles, mem);
                     byte val = read_byte(cycles, zp_addr, mem);
                     load_register(this->rx, val);
                 } break;
 
-            case INST_LDX_ZPY:
-                {
+            case INST_LDX_ZPY: {
                     byte zp_addr = fetch_byte(cycles, mem);
                     zp_addr += this->ry;
                     cycles_guard(cycles, 1);
@@ -136,21 +129,18 @@ void CPU::exec(s32 cycles, Memory &mem) {
             /* LDX */
 
             /* LDY */
-            case INST_LDY_IM:
-                {
+            case INST_LDY_IM: {
                     byte val = fetch_byte(cycles, mem);
                     load_register(this->ry, val);
                 } break;
 
-            case INST_LDY_ZP:
-                {
+            case INST_LDY_ZP: {
                     byte zp_addr = fetch_byte(cycles, mem);
                     byte val = read_byte(cycles, zp_addr, mem);
                     load_register(this->ry, val);
                 } break;
 
-            case INST_LDY_ZPX:
-                {
+            case INST_LDY_ZPX: {
                     byte zp_addr = fetch_byte(cycles, mem);
                     zp_addr += this->rx;
                     cycles_guard(cycles, 1);
@@ -161,17 +151,15 @@ void CPU::exec(s32 cycles, Memory &mem) {
 
             /* LDX */
 
-            case INST_JSR:
-                {
-                    word jp_addr = fetch_word(cycles, mem);     
+            case INST_JSR: {
+                    word jp_addr = fetch_word(cycles, mem);
                     mem.write_word(cycles, this->pc-1, this->sp);
                     this->pc = jp_addr;
-                    
+
                     cycles_guard(cycles, 2);
                 } break;
 
-            default:
-                {
+            default: {
                     info("Unknown instruction byte: %x", inst);
                 } break;
         }
@@ -185,12 +173,12 @@ void CPU::exec(s32 cycles, Memory &mem) {
 void dbg_cpu(CPU &cpu, Memory &mem) {
     msg("PC: 0x%.4x", cpu.pc);
     msg("SP: 0x%.4x", cpu.sp);
-    
+
     msg("\n%s Registers %s", "==", "==");
     msg("\tA: 0x%.2x", cpu.ra);
     msg("\tX: 0x%.2x", cpu.rx);
     msg("\tY: 0x%.2x", cpu.ry);
-    
+
     msg("\n%s Flags %s", "==", "==");
     msg("\tCarry     flag: %d", cpu.status.c);
     msg("\tZero      flag: %d", cpu.status.z);
@@ -201,24 +189,26 @@ void dbg_cpu(CPU &cpu, Memory &mem) {
     msg("\tNegative  flag: %d", cpu.status.n);
 
 
+    static const int MAX_LOOP = 1000000;
+
     msg("\n%s Memory %s", "==", "==");
-    printf("\tSP..SP+2:\n");
-    printf("\t\t0x%.4x  ", cpu.sp);
+    printf("\tSP-1..SP+1:\n");
+    printf("\t\t0x%.4x:  ", cpu.sp);
     for (u32 i=0; i < 3 && i < MAX_LOOP; ++i) {
-        if (cpu.sp+i > mem.MAX_MEM-1) {
+        if (cpu.sp-1+i > mem.MAX_MEM-1) {
             break;
         }
-        printf("%.2x ", mem[cpu.sp+i]);
+        printf("%.2x ", mem[cpu.sp-1+i]);
     }
     printf("\n");
 
-    printf("\tPC..PC+2: \n");
-    printf("\t\t0x%.4x  ", cpu.pc);
+    printf("\tPC-1..PC+1: \n");
+    printf("\t\t0x%.4x:  ", cpu.pc);
     for (u32 i=0; i < 3 && i < MAX_LOOP; ++i) {
-        if (cpu.pc+i > mem.MAX_MEM-1) {
+        if (cpu.pc-1+i > mem.MAX_MEM-1) {
             break;
         }
-        printf("%.2x ", mem[cpu.pc+i]);
+        printf("%.2x ", mem[cpu.pc-1+i]);
     }
     printf("\n");
 }

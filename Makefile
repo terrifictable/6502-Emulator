@@ -28,7 +28,6 @@ run: build
 	./$(OUT) $(args)
 
 build: $(obj)
-	windres resource.rc -o $(bin)/resource.o
 	$(CXX) $(STD) $(FLAGS) $(wildcard $(bin)/*.o $(bin)/lib/*.o) -o $(OUT)
 
 libs: $(libobj)
