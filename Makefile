@@ -1,29 +1,56 @@
-CXX 	 	:= g++
+include gmtt.mk
 
-INCLUDES    := -Iinclude/ -Isrc/
-LINKS		:= -Llibs/libgtest
+CXX := g++
+CC  := gcc
+INCLUDE := -Iinclude/
+STD     := -std=c++17
+FLAGS   := -O3 -g -Wall -Wextra -Werror $(INCLUDE)
 
-CXXFLAGS 	:= -std=c++20 -g -Wall -Wextra -Werror $(INCLUDES) $(LINKS)
-GTESTFLAGS  := 
+srcdir := src
+src    := $(call wildcard-rec,$(srcdir)/**.cpp)
+obj    := $(src:%.cpp=%.o)
+
+libdir 	:= include
+libsrc 	:= $(call wildcard-rec,$(libdir)/**.c)
+libobj 	:= $(libsrc:%.c=lib/%.o)
+
+testdir  := test
+testsrc := $(call wildcard-rec,$(testdir)/**.cpp)
+testobj := $(testsrc:%.cpp=test/%.o)
 
 
-OUT := bin/main.exe
+bin := bin
+OUT := 6502.exe
+OUT_TEST := test.exe
 
-SRC := $(wildcard src/**/*.cpp) $(wildcard src/*.cpp)
-OBJ := $(patsubst src/%.cpp,bin/%.o,$(SRC))
 
-all: build
+run: build
 	./$(OUT) $(args)
 
-build: $(OBJ)
-	@mkdir -p $(dir $(OUT))
-	$(CXX) $(CXXFLAGS) -o $(OUT) $(OBJ)
+build: $(obj)
+	windres resource.rc -o $(bin)/resource.o
+	$(CXX) $(STD) $(FLAGS) $(wildcard $(bin)/*.o $(bin)/lib/*.o) -o $(OUT)
 
-bin/%.o: src/%.cpp
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+libs: $(libobj)
+
+test: $(testobj)
+	$(CXX) $(STD) $(FLAGS) -DGTEST_HAS_PTHREAD=1 $(wildcard $(bin)/test/*.o) $(wildcard $(bin)/lib/*.o) libs/libgtest.a -Llibs -lgtest -lpthread -o $(OUT_TEST)
+	./$(OUT_TEST) $(args)
+.PHONY: build all libs test clean run
+
+%.o: %.cpp
+	-@mkdir -p $(bin)/
+	$(CXX) $(STD) $(FLAGS) -c $< -o $(bin)/$(@F)
+
+lib/%.o: %.c
+	-@mkdir -p $(bin)/lib/
+	$(CC) --std=c17 $(FLAGS) -c $< -o $(bin)/lib/$(@F)
+
+test/%.o: %.cpp
+	-@mkdir -p $(bin)/test/
+	$(CXX) $(STD) $(FLAGS) -c $< -o $(bin)/test/$(@F)
 
 
 clean:
-	rm -r $(dir $(OUT))
-
+	-@rm -r $(bin)/
+	-@rm $(OUT)
